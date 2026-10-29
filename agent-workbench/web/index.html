@@ -1,0 +1,8 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Agent Workbench</title><link rel="stylesheet" href="/static/style.css"></head><body><main><header><p class="eyebrow">SELF-HOSTED · OPEN-SOURCE FIRST</p><h1>Agent Workbench</h1><p>One workspace. Three modes. Verifiable outputs.</p></header><section>
+<h2>Model gateway setup</h2>
+<p>FreeLLMAPI runs locally at <a href="http://localhost:3001" target="_blank" rel="noreferrer">localhost:3001</a>. Add a provider there, copy its unified API key, and save it below. The key is stored in the local SQLite volume, not in the image.</p>
+<label for="gatewayKey">FreeLLMAPI unified API key</label>
+<input id="gatewayKey" type="password" autocomplete="off" placeholder="Paste freellmapi-… key">
+<div class="row"><button id="saveKey">Save gateway key</button><span id="keyStatus">Checking…</span></div>
+</section>
+<section><label for="mode">Mode</label><select id="mode"><option value="chat">Chat</option><option value="research">Research (include source URLs)</option><option value="swe">Software engineering (repository in ./workspace)</option></select><label for="prompt">Task</label><textarea id="prompt" rows="7" placeholder="Describe the task..."></textarea><button id="submit">Run task</button> <span id="status">Ready</span></section><section><div class="row"><h2>Task output</h2><button id="refresh" class="secondary">Refresh</button></div><pre id="output">Submit a task to begin.</pre></section><section><h2>Recent tasks</h2><div id="tasks">Loading…</div></section><footer>Prototype v0.1 · SWE output is not automatically production-ready.</footer></main><script src="/static/app.js"></script></body></html>

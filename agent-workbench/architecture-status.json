@@ -1,0 +1,9 @@
+{
+  "project": "Agent Workbench",
+  "version": "0.1.0",
+  "status": "prototype",
+  "modes": ["chat", "research", "swe"],
+  "provider_protocol": "OpenAI-compatible Chat Completions",
+  "free_llm_api": "experimental swappable gateway candidate",
+  "production_ready": false
+}

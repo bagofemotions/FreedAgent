@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+set -eu
+if [ "$#" -lt 1 ]; then echo 'Usage: ./agent chat|research|swe "task prompt"' >&2; exit 2; fi
+MODE="$1"; shift
+case "$MODE" in chat|research|swe) ;; *) echo 'Mode must be chat, research, or swe' >&2; exit 2;; esac
+PROMPT="${*:-}"
+if [ -z "$PROMPT" ]; then printf 'Task: '; IFS= read -r PROMPT; fi
+python3 - "$MODE" "$PROMPT" "${AGENT_URL:-http://localhost:8080}" <<'PY'
+import json,sys,time,urllib.request
+mode,prompt,base=sys.argv[1:]
+def req(path,payload=None):
+ data=None if payload is None else json.dumps(payload).encode()
+ r=urllib.request.Request(base.rstrip('/')+path,data=data,headers={'Content-Type':'application/json'})
+ with urllib.request.urlopen(r,timeout=60) as x:return json.loads(x.read())
+t=req('/api/tasks',{'mode':mode,'prompt':prompt}); tid=t['task_id']; print('Task ID:',tid)
+while True:
+ t=req('/api/tasks/'+tid); print('Status:',t['status'])
+ if t['status'] not in ('queued','running'):
+  print(json.dumps(t.get('result') or {'error':t.get('error')},indent=2))
+  if t['status'] in ('failed','needs_review'):sys.exit(1)
+  break
+ time.sleep(2)
+PY

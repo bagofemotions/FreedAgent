@@ -1,0 +1,60 @@
+services:
+  api:
+    build: .
+    ports: ["${HOST_PORT:-8080}:8080"]
+    environment:
+      DATA_DIR: /data
+      WORKSPACE_DIR: /workspace
+      MODEL_PROVIDERS: free
+      MODEL_TIMEOUT_SECONDS: ${MODEL_TIMEOUT_SECONDS:-60}
+      MAX_MODEL_ATTEMPTS: ${MAX_MODEL_ATTEMPTS:-3}
+      FREELLMAPI_BASE_URL: http://freellmapi:3001/v1
+      SANDBOX_URL: http://sandbox:8090
+      RESEARCH_MAX_BYTES: ${RESEARCH_MAX_BYTES:-1500000}
+    volumes:
+      - agent_data:/data
+      - ./workspace:/workspace
+    depends_on: [sandbox, freellmapi]
+    networks: [agent_net]
+    restart: unless-stopped
+
+  freellmapi:
+    image: ghcr.io/tashfeenahmed/freellmapi:latest
+    environment:
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Start with ./start.sh to generate a secure key}
+      PORT: 3001
+    ports:
+      - "127.0.0.1:${FREELLMAPI_PORT:-3001}:3001"
+    volumes:
+      - freellmapi_data:/app/server/data
+    networks: [agent_net, egress]
+    restart: unless-stopped
+
+  sandbox:
+    build:
+      context: .
+      dockerfile: Dockerfile.sandbox
+    environment:
+      WORKSPACE_DIR: /workspace
+      SANDBOX_MAX_SECONDS: ${SANDBOX_MAX_SECONDS:-120}
+    volumes:
+      - ./workspace:/workspace
+      - agent_data:/data:ro
+    read_only: true
+    tmpfs: [/tmp:size=128m,noexec,nosuid]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 1.5
+    networks: [agent_net]
+    restart: unless-stopped
+
+volumes:
+  agent_data:
+  freellmapi_data:
+
+networks:
+  agent_net:
+    internal: true
+  egress: {}
